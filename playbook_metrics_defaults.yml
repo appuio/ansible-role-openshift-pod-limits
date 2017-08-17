@@ -1,0 +1,26 @@
+---
+- hosts: masters[0]
+  gather_facts: False
+
+  roles:
+  - role: ansible-role-openshift-pod-limits
+    namespace: openshift-infra
+    kind: ReplicationController
+    selector: metrics-infra=hawkular-metrics
+    containers:
+    - limits_memory: 2.5G
+      requests_memory: 1.5G
+  - role: ansible-role-openshift-pod-limits
+    namespace: openshift-infra
+    kind: ReplicationController
+    selector: metrics-infra=hawkular-cassandra
+    containers:
+    - limits_memory: 2G
+      requests_memory: 1G
+  - role: ansible-role-openshift-pod-limits
+    namespace: openshift-infra
+    kind: ReplicationController
+    selector: metrics-infra=heapster
+    containers:
+    - limits_memory: 3.75G
+      requests_memory: 0.9375G

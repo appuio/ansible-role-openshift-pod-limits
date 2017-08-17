@@ -1,0 +1,34 @@
+---
+- name: "Prepare patches for {{ resource.metadata.name }}"
+  set_fact:
+    patch:
+      name: "{{ item[1].name | default(resource.spec.template.spec.containers[item[0]].name) }}"
+      resources:
+        limits:
+           memory: "{{ item[1].limits_memory | default('') | normalize_bytes or omit }}"
+           cpu: "{{ item[1].limits_cpu | default(omit) }}"
+        requests:
+          memory: "{{ item[1].requests_memory | default('') | normalize_bytes or omit }}"
+          cpu: "{{ item[1].requests_cpu | default(omit) }}"
+  register: container_patch
+  with_indexed_items: "{{ containers }}"
+  no_log: true
+
+- name: "Collect patches for {{ resource.metadata.name }}"
+  set_fact:
+   container_patch : "{{ container_patch.results | map(attribute='ansible_facts.patch' ) | list }}"
+   with_items: "{{ resources }}"
+  no_log: true
+
+- name: "Patch resource.metadata.name"
+  openshift_resource:
+    namespace: "{{ namespace }}"
+    patch:
+      apiVersion: v1
+      kind: "{{ kind }}"
+      metadata:
+        name: "{{ resource.metadata.name }}"
+      spec:
+        template:
+          spec:
+            containers: "{{ container_patch }}"

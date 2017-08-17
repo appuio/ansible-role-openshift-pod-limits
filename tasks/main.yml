@@ -1,0 +1,17 @@
+---
+- name: Load ansible-module-openshift
+  include_role:
+    name: "ansible-role-openshift-pod-limits/vendor/ansible-module-openshift"
+
+- name: Get resources to patch
+  command: "oc export -n {{ namespace }} {{ kind }} -l {{ selector }}"
+  register: resources
+  check_mode: no
+  changed_when: false
+  no_log: true
+
+- name: Set pod limits
+  include: set_limits.yml
+  with_items: "{{ ( resources.stdout | from_yaml )['items'] }}"
+  loop_control:
+    loop_var: resource

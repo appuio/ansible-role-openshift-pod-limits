@@ -1,0 +1,14 @@
+---
+- hosts: masters[0]
+  gather_facts: False
+
+  roles:
+  - role: ansible-role-openshift-pod-limits
+    namespace: logging
+    kind: DeploymentConfig
+    selector: component=kibana
+    containers:
+    - name: kibana
+      limits_memory: 736Mi
+    - name: kibana-proxy
+      limits_memory: 96Mi
